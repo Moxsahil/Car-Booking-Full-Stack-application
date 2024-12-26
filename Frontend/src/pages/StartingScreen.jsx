@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 const StartingScreen = () => {
   return (
     <div
-      className="w-full h-screen flex flex-col justify-between"
+      className="w-full h-screen flex flex-col justify-between overflow-hidden"
       style={{
         backgroundImage: "url('./ferrari.jpg')", // Default image for large screens
         backgroundSize: "cover",
@@ -21,10 +21,8 @@ const StartingScreen = () => {
         <h1 className="text-white text-3xl font-bold w-44 h-auto">MOKSH</h1>
       </header>
 
-      {/* Main Illustration */}
       <main className="flex-1 relative">
         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-3/4">
-          {/* Main content here */}
         </div>
       </main>
 

@@ -9,11 +9,18 @@ const cookieParser = require("cookie-parser");
 const connectToDb = require("./db/db");
 const userRoutes = require("./routes/user.routes");
 const captainRoutes = require("./routes/captain.routes");
+const paymentRoutes = require("./routes/payment.routes");
 
 
 connectToDb();
 
-app.use(cors());
+app.use(cors(
+    {
+        origin: "http://localhost:3000",
+        methods: ["GET", "POST"],
+        credentials: true
+    }
+));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -25,5 +32,6 @@ app.get("/", (req, res) => {
 
 app.use('/users', userRoutes);
 app.use('/captains', captainRoutes);
+app.use('/api/payment', paymentRoutes)
 
 module.exports = app;

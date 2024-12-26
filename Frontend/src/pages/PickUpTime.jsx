@@ -5,38 +5,56 @@ import { useNavigate } from 'react-router-dom';
 const PickUpTime = () => {
   const navigate = useNavigate();
 
-  
   const [customDate, setCustomDate] = useState('');
   const [customTime, setCustomTime] = useState('');
-  const [dateOption, setDateOption] = useState('Today'); 
-  const [timeOption, setTimeOption] = useState('Now'); 
+  const [dateOption, setDateOption] = useState('Today');
+  const [timeOption, setTimeOption] = useState('Now');
+  const [error, setError] = useState(''); 
 
-  
   const handleDateChange = (e) => {
     const value = e.target.value;
     setDateOption(value);
     if (value !== 'Custom Date') {
       setCustomDate('');
     }
+    if (value === 'Tomorrow' || value === 'Custom Date') {
+      setTimeOption('Custom Time');
+    } else {
+      setTimeOption('Now');
+    }
+    setError(''); 
   };
 
-    const handleTimeChange = (e) => {
+  const handleTimeChange = (e) => {
     const value = e.target.value;
     setTimeOption(value);
     if (value !== 'Custom Time') {
       setCustomTime('');
     }
+    setError(''); 
   };
 
-
   const handleConfirm = () => {
+    // Validation logic
+    if (
+      (dateOption === 'Custom Date' && !customDate) ||
+      (timeOption === 'Custom Time' && !customTime)
+    ) {
+      setError('Please fill out all required fields.');
+      return;
+    }
+
     navigate('/choosevehicle');
   };
 
   return (
     <div className="min-h-screen bg-white p-4">
       <div className="flex justify-between items-center mb-6">
-        <button onClick={() => navigate('/home')} className="text-lg cursor-pointer relative top-2 left-2" aria-label="Back">
+        <button
+          onClick={() => navigate('/home')}
+          className="text-lg cursor-pointer relative top-2 left-2"
+          aria-label="Back"
+        >
           <img src="/backButton.svg" alt="Back" className="w-6 h-6" />
         </button>
       </div>
@@ -75,25 +93,27 @@ const PickUpTime = () => {
         )}
 
         {/* Time Picker */}
-        <div className="flex items-center border rounded-md p-3 mt-4">
-          <span className="w-6 h-6">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22ZM13 12V7H11V14H17V12H13Z"></path>
-            </svg>
-          </span>
-          <select
-            className="flex-1 ml-3 bg-transparent focus:outline-none"
-            value={timeOption}
-            onChange={handleTimeChange}
-          >
-            <option>Now</option>
-            <option>In 15 minutes</option>
-            <option>Custom Time</option>
-          </select>
-        </div>
+        {dateOption !== 'Tomorrow' && dateOption !== 'Custom Date' && (
+          <div className="flex items-center border rounded-md p-3 mt-4">
+            <span className="w-6 h-6">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22ZM13 12V7H11V14H17V12H13Z"></path>
+              </svg>
+            </span>
+            <select
+              className="flex-1 ml-3 bg-transparent focus:outline-none"
+              value={timeOption}
+              onChange={handleTimeChange}
+            >
+              <option>Now</option>
+              <option>In 15 minutes</option>
+              <option>Custom Time</option>
+            </select>
+          </div>
+        )}
 
         {/* Custom Time Input */}
-        {timeOption === 'Custom Time' && (
+        {(dateOption === 'Tomorrow' || dateOption === 'Custom Date' || timeOption === 'Custom Time') && (
           <div className="flex items-center border rounded-md p-3 mt-2">
             <input
               type="time"
@@ -104,6 +124,9 @@ const PickUpTime = () => {
           </div>
         )}
       </div>
+
+      {/* Error Message */}
+      {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
       <div className="space-y-4 text-sm text-gray-500 mb-6">
         <div className="flex items-center">

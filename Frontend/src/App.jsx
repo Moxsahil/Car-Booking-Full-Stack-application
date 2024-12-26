@@ -9,7 +9,6 @@ import CaptainSignup2 from './pages/CaptainSignup2'
 import Home from './pages/Home'
 import UserProtectWrapper from './pages/UserProtectWrapper'
 import UserLogout from './pages/UserLogout'
-
 import VehicleScreen from './pages/VehicleScreen'
 import Paymentpage from './pages/Paymentpage'
 import RideDetails from './pages/RideDetails'
