@@ -16,7 +16,7 @@ connectToDb();
 
 app.use(cors(
     {
-        origin: "http://localhost:3000",
+        origin: "https://car-booking-rs6p.onrender.com",
         methods: ["GET", "POST"],
         credentials: true
     }
