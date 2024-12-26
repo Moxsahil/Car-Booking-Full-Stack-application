@@ -74,7 +74,7 @@ const Paymentpage = () => {
           <img
             src="https://cdn.iconscout.com/icon/free/png-256/free-upi-logo-icon-download-in-svg-png-gif-file-formats--unified-payments-interface-payment-money-transfer-logos-icons-1747946.png?f=webp"
             alt="UPI logo"
-            className="w-8 h-8 mr-2" // Add classes for size and margin
+            className="w-8 h-8 mr-2" 
           />
           UPI
         </button>
