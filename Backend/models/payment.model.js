@@ -1,30 +1,22 @@
 const mongoose = require("mongoose");
 
 const paymentSchema = new mongoose.Schema({
-    amount: {
-        type: Number,
-        required: true,
-    },
-    paymentId: {
+    razorpay_order_id: {
         type: String,
         required: true,
     },
-    orderId: {
+    razorpay_payment_id: {
         type: String,
         required: true,
     },
-    signature: {
+    razorpay_signature: {
         type: String,
         required: true,
     },
-    status: {
-        type: String,
-        required: true,
-    },
-    createdAt: {
+    date: {
         type: Date,
-        default: Date.now,
-    },
+        default: Date.now
+    }
 });
 
 const Payment = mongoose.model("Payment", paymentSchema);

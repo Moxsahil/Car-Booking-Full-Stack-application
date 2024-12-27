@@ -14,14 +14,8 @@ const paymentRoutes = require("./routes/payment.routes");
 
 connectToDb();
 
-app.use(cors(
-    {
-        origin: "https://car-booking-rs6p.onrender.com",
-        methods: ["GET", "POST"],
-        credentials: true
-    }
-));
 app.use(express.json());
+app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
