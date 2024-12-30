@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import 'remixicon/fonts/remixicon.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const PickUpTime = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { pickup, destination } = location.state || {};
 
   const [customDate, setCustomDate] = useState('');
   const [customTime, setCustomTime] = useState('');
   const [dateOption, setDateOption] = useState('Today');
   const [timeOption, setTimeOption] = useState('Now');
-  const [error, setError] = useState(''); 
+  const [error, setError] = useState('');
 
   const handleDateChange = (e) => {
     const value = e.target.value;
@@ -22,7 +24,7 @@ const PickUpTime = () => {
     } else {
       setTimeOption('Now');
     }
-    setError(''); 
+    setError('');
   };
 
   const handleTimeChange = (e) => {
@@ -31,11 +33,10 @@ const PickUpTime = () => {
     if (value !== 'Custom Time') {
       setCustomTime('');
     }
-    setError(''); 
+    setError('');
   };
 
   const handleConfirm = () => {
-    // Validation logic
     if (
       (dateOption === 'Custom Date' && !customDate) ||
       (timeOption === 'Custom Time' && !customTime)
@@ -44,7 +45,7 @@ const PickUpTime = () => {
       return;
     }
 
-    navigate('/choosevehicle');
+    navigate("/choosevehicle", { state: { pickup, destination } });
   };
 
   return (
@@ -62,7 +63,6 @@ const PickUpTime = () => {
       <h1 className="text-2xl font-bold mb-2">When do you want to be picked up?</h1>
 
       <div className="space-y-4 mb-6">
-        {/* Date Picker */}
         <div className="flex items-center border rounded-md p-3">
           <span className="w-6 h-6">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -80,7 +80,6 @@ const PickUpTime = () => {
           </select>
         </div>
 
-        {/* Custom Date Input */}
         {dateOption === 'Custom Date' && (
           <div className="flex items-center border rounded-md p-3 mt-2">
             <input
@@ -92,7 +91,6 @@ const PickUpTime = () => {
           </div>
         )}
 
-        {/* Time Picker */}
         {dateOption !== 'Tomorrow' && dateOption !== 'Custom Date' && (
           <div className="flex items-center border rounded-md p-3 mt-4">
             <span className="w-6 h-6">
@@ -112,7 +110,6 @@ const PickUpTime = () => {
           </div>
         )}
 
-        {/* Custom Time Input */}
         {(dateOption === 'Tomorrow' || dateOption === 'Custom Date' || timeOption === 'Custom Time') && (
           <div className="flex items-center border rounded-md p-3 mt-2">
             <input
@@ -125,7 +122,6 @@ const PickUpTime = () => {
         )}
       </div>
 
-      {/* Error Message */}
       {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
       <div className="space-y-4 text-sm text-gray-500 mb-6">

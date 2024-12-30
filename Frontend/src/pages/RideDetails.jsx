@@ -1,10 +1,22 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-
+import React, { useState, useEffect, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const RideDetails = () => {
-  const [message, setMessage] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
+  const mapRef = useRef(null);
+  const directionsService = useRef(null);
+  const directionsRenderer = useRef(null);
+
+  const [message, setMessage] = useState("");
+
+  const { ride, pickup, destination, ridePrices, passengername, email, mobile } = location.state || {};
+
+  if (!ride) {
+    navigate("/home", { replace: true });
+    console.log(state);
+    return null;
+  }
 
   const handleLogout = async () => {
     navigate("/user/logout");
@@ -19,34 +31,61 @@ const RideDetails = () => {
     }
   };
 
+  useEffect(() => {
+    if (window.google && pickup && destination) {
+      if (!directionsService.current) {
+        directionsService.current = new window.google.maps.DirectionsService();
+      }
+      if (!directionsRenderer.current) {
+        directionsRenderer.current = new window.google.maps.DirectionsRenderer();
+      }
+
+      const map = new window.google.maps.Map(mapRef.current, {
+        zoom: 14,
+        center: { lat: 28.8955165, lng: 76.5710154 },
+      });
+
+      directionsRenderer.current.setMap(map);
+
+      const request = {
+        origin: pickup,
+        destination: destination,
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      };
+
+      directionsService.current.route(request, (result, status) => {
+        if (status === window.google.maps.DirectionsStatus.OK) {
+          directionsRenderer.current.setDirections(result);
+        } else {
+          console.error(`Error fetching directions: ${result}`);
+        }
+      });
+    } else {
+      console.error("Google Maps API, pickup, or destination is not available");
+    }
+  }, [pickup, destination]);
+
   return (
-    <div className="min-h-screen bg-gray-100 overflow-hidden">
-      <h1 className="absolute top-16 right-5 text-2xl font-bold text-black z-50">MOKSH</h1>
+    <div className="h-screen flex flex-col">
+      <div className="flex-grow relative">
+        <h1 className="absolute top-16 right-5 text-2xl font-bold text-black z-50">MOKSH</h1>
 
-<div className="absolute top-5 right-5 flex items-center z-50">
-  <button
-    onClick={handleLogout}
-    className="flex items-center bg-red-500 text-white px-3 py-2 rounded-md hover:bg-red-600 transition"
-  >
-    <img
-      src="https://www.svgrepo.com/show/529288/user-minus.svg" 
-      alt="Logout Icon"
-      className="w-6 h-6 mr-2" 
-    />
-    Logout
-  </button>
-</div>
-
-      {/* Map Section */}
-      <div className="relative h-[40vh]">
-        <iframe
-          title="map"
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d27888.810772897955!2d76.5710154!3d28.8955165!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390d83bfbffffffff%3A0xfdf11cda0895e60d!2sRohtak%2C%20Haryana!5e0!3m2!1sen!2sin!4v1699379253679!5m2!1sen!2sin"
-          className="w-full h-full"
-          allowFullScreen=""
-          loading="lazy"
-        ></iframe>
+        <div className="absolute top-5 right-5 flex items-center z-50">
+          <button
+            onClick={handleLogout}
+            className="flex items-center bg-red-500 text-white px-3 py-2 rounded-md hover:bg-red-600 transition"
+          >
+            <img
+              src="https://www.svgrepo.com/show/529288/user-minus.svg"
+              alt="Logout Icon"
+              className="w-6 h-6 mr-2"
+            />
+            Logout
+          </button>
+        </div>
+        <div ref={mapRef} className="absolute inset-0 bg-gray-200"></div>
       </div>
+
 
       {/* Ride Details */}
       <div className="p-4 bg-white flex items-center justify-between">
@@ -66,34 +105,33 @@ const RideDetails = () => {
         </div>
       </div>
       <div className="flex justify-around mt-6">
-          <button className="flex flex-col items-center">
-            <div className="w-12 h-12 rounded-full bg-blue-100 flex justify-center items-center">
-              🛡️
-            </div>
-            <span className="mt-2 text-sm">Safety</span>
-          </button>
-          <button className="flex flex-col items-center">
-            <div className="w-12 h-12 rounded-full bg-blue-100 flex justify-center items-center">
-              📤
-            </div>
-            <span className="mt-2 text-sm">Share my trip</span>
-          </button>
-          <button className="flex flex-col items-center">
-            <div className="w-12 h-12 rounded-full bg-blue-100 flex justify-center items-center">
-              📞
-            </div>
-            <span className="mt-2 text-sm">Call driver</span>
-          </button>
-        </div>
+        <button className="flex flex-col items-center">
+          <div className="w-12 h-12 rounded-full bg-blue-100 flex justify-center items-center">
+            🛡️
+          </div>
+          <span className="mt-2 text-sm">Safety</span>
+        </button>
+        <button className="flex flex-col items-center">
+          <div className="w-12 h-12 rounded-full bg-blue-100 flex justify-center items-center">
+            📤
+          </div>
+          <span className="mt-2 text-sm">Share my trip</span>
+        </button>
+        <button className="flex flex-col items-center">
+          <div className="w-12 h-12 rounded-full bg-blue-100 flex justify-center items-center">
+            📞
+          </div>
+          <span className="mt-2 text-sm">Call driver</span>
+        </button>
+      </div>
 
       <div className="m-3 bg-blue-300 px-4 py-1 rounded-md shadow-md">
-        <h2 className="text-2xl  font-bold mb-2">Arriving at:</h2>
+        <h2 className="text-2xl font-bold mb-2">Arriving at:</h2>
         <p className="text-gray-800">Pickup Point: Rohtak, Haryana</p>
         <p className="text-gray-500">Nearby Landmark: Near Rohtak Railway Station</p>
       </div>
 
-    
-      <div className="absolute left-4 right-4  flex items-center bg-slate-200 rounded-md shadow-lg p-3">
+      {/* <div className="absolute left-4 right-4 flex items-center bg-slate-200 rounded-md shadow-lg p-3">
         <input
           className="flex-grow bg-transparent border-none outline-none text-gray-800 placeholder-gray-500 px-3"
           type="text"
@@ -121,7 +159,7 @@ const RideDetails = () => {
             />
           </svg>
         </button>
-      </div>
+      </div> */}
     </div>
   );
 };

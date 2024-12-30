@@ -1,19 +1,34 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 
 const PaymentPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-
-  const { ride } = location.state || {};
-
+  
+  const { ride, ridePrices } = location.state || {};
+  const [passengername, setPassengername] = useState('');
+  const [email, setEmail] = useState('');
+  const [mobile, setMobile] = useState('');
   if (!ride) {
     navigate("/home", { replace: true });
+    console.log(state);
     return null;
   }
 
   const handlePayment = async () => {
+    if (!passengername.trim()) {
+      toast.error("Please enter your name.");
+      return;
+    }
+    if (!mobile.trim()) {
+      toast.error("Please enter your mobile number.");
+      return;
+    }
+    if (!/^\d{10}$/.test(mobile.trim())) {
+      toast.error("Please enter a valid 10-digit mobile number.");
+      return;
+    } 
     try {
       const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/payment/order`, {
         method: "POST",
@@ -21,7 +36,7 @@ const PaymentPage = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          amount: ride.price.replace("₹", ""),
+          amount: parseFloat(ridePrices).toFixed(2).replace(" ", ""),
         }),
       });
 
@@ -29,7 +44,7 @@ const PaymentPage = () => {
       handlePaymentVerify(data.data);
 
       if (response.ok) {
-        console.log(data);
+        console.log("Payment initiated successfully.");
       }
     } catch (err) {
       console.error(err);
@@ -63,7 +78,7 @@ const PaymentPage = () => {
 
           if (verifyData.message) {
             toast.success(verifyData.message);
-            navigate("/ridedetails", { state: { ride }, replace:true });
+            navigate("/ridedetails", { state: { ride, passengername, mobile }, replace:true });
           }
         } catch (err) {
           console.error(err);
@@ -77,16 +92,61 @@ const PaymentPage = () => {
   };
 
   return (
-    <div className="h-screen bg-white p-4">
+    <div className="h-screen bg-white p-4 mt-4">
       {/* Header */}
-      <header className="text-center text-xl font-semibold mb-6">Payment </header>
+      <header className="text-center text-xl font-semibold mb-6">Payment Page </header>
 
       {/* Ride Details */}
-      <div className="bg-blue-500 rounded-lg p-4 shadow-md mb-6">
-        <div className="text-sm font-medium text-white">Selected Ride</div>
-        <div className="text-lg font-bold mt-2 text-white">{ride.name}</div>
-        <div className="text-lg text-white">Capacity: {ride.capacity}</div>
-        <div className="text-lg text-white">Price: {ride.price}</div>
+      <div className="bg-orange-500 rounded-lg p-6 shadow-md mb-8 flex items-center">
+        <img src={ride.image} alt={ride.name} className="w-20 h-20 mt-2 mr-4"/> 
+        <div className="flex-grow text-right">
+          <div className="text-sm font-medium text-white">Selected Ride</div>
+          <div className="text-lg font-bold mt-2 text-white">{ride.name}</div>
+          <div className="text-lg text-white">Capacity: {ride.capacity}</div>
+          <div className="text-lg text-white">Price: ₹{parseFloat(ridePrices).toFixed(2)}</div>
+        </div>
+      </div>
+
+      <div className="bg-blue-400 rounded-lg p-6 shadow-md mb-6">
+        <div className="text-sm font-medium text-gray-700 mb-4">Passenger Details</div>
+        <div className="mb-4">
+          <label className="block text-gray-700 text-sm font-bold mb-2 rounded-lg" htmlFor="name">
+            Name
+          </label>
+          <input
+            type="text"
+            id="name"
+            required
+            value={passengername}
+            onChange={(e) => setPassengername(e.target.value)}
+            className="font-bold shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="mobile">
+            Mobile No
+          </label>
+          <input
+            type="number"
+            id="mobile"
+            required
+            value={mobile}
+            onChange={(e) => setMobile(e.target.value)}
+            className="font-bold shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+            Email(optional)
+          </label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="font-bold shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          />
+        </div>
       </div>
 
       {/* Payment Button */}

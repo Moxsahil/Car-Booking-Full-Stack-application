@@ -2,18 +2,26 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import gsap from "gsap";
 import "remixicon/fonts/remixicon.css";
-import LocationSearchPanel from "./LocationSearchPanel";
+import LocationSearchPanel from "../components/LocationSearchPanel";
+
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 const Home = () => {
   const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
   const [panelOpen, setPanelOpen] = useState(false);
-  const [currentLocation, setCurrentLocation] = useState("");
+  const [currentLocation, setCurrentLocation] = useState({
+    lat: null,
+    lng: null,
+  });
 
   const panelRef = useRef(null);
   const formRef = useRef(null);
   const panelCloseRef = useRef(null);
+  const mapRef = useRef(null);
   const navigate = useNavigate();
+  const map = useRef(null);
+  const marker = useRef(null);
 
   const handleLogout = async () => {
     navigate("/user/logout");
@@ -57,38 +65,95 @@ const Home = () => {
       gsap.to(panelCloseRef.current, {
         opacity: 0,
       });
-      gsap.to(".label-to-top", { opacity: 0, duration: 0.3 });
+      gsap.to(".label-to-top", { opacity: 0, duration: 0.5 });
     }
   }, [panelOpen]);
 
   const handleButtonClick = () => {
     if (pickup && destination) {
-      navigate("/pickuptime");
+      navigate("/pickuptime", { state: { pickup, destination } });
     } else {
       alert("Please fill in both Pickup and Destination fields.");
     }
   };
 
-  // Automatically detect current location and set Pickup field
+  const initMap = (lat, lng) => {
+    if (mapRef.current) {
+      if (!map.current) {
+        map.current = new window.google.maps.Map(mapRef.current, {
+          center: { lat, lng },
+          zoom: 15,
+        });
+
+        marker.current = new window.google.maps.Marker({
+          position: { lat, lng },
+          map: map.current,
+          title: "Your current location",
+        });
+      } else {
+        map.current.setCenter({ lat, lng });
+        marker.current.setPosition({ lat, lng });
+      }
+    }
+  };
+
   const handleUseCurrentLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
+          setCurrentLocation({ lat: latitude, lng: longitude });
 
           try {
             const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}`
             );
             const data = await response.json();
-            const city =
-              data.address.city || data.address.town || data.address.village;
 
-            setPickup(city); // Set current location to Pickup input
+            if (data.status === "OK") {
+              const city =
+                data.results[0]?.address_components?.find((component) =>
+                  component.types.includes("locality")
+                )?.long_name;
+
+              setPickup(city || "Your location");
+              initMap(latitude, longitude);
+            } else {
+              console.error("Geocode API error:", data.status);
+              alert("Could not detect your location. Geocode API returned an error.");
+            }
           } catch (error) {
             console.error("Error fetching location:", error);
-            alert("Could not detect your location. Please try again.");
+            alert("Could not fetch the location from the geocode API. Please try again.");
           }
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          if (error.code === error.PERMISSION_DENIED) {
+            alert("Geolocation permission denied. Please enable location access.");
+          } else if (error.code === error.POSITION_UNAVAILABLE) {
+            alert("Location unavailable. Please try again later.");
+          } else if (error.code === error.TIMEOUT) {
+            alert("Geolocation request timed out. Please try again.");
+          } else {
+            alert("An unknown error occurred while retrieving your location.");
+          }
+        }
+      );
+    } else {
+      alert("Geolocation is not supported by this browser.");
+    }
+  };
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setCurrentLocation({ lat: latitude, lng: longitude });
+          setPickup("Your location");
+
+          initMap(latitude, longitude);
         },
         (error) => {
           console.error("Error getting location:", error);
@@ -98,39 +163,31 @@ const Home = () => {
     } else {
       alert("Geolocation is not supported by this browser.");
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (currentLocation.lat && currentLocation.lng) {
+      initMap(currentLocation.lat, currentLocation.lng);
+    }
+  }, [currentLocation]);
 
   return (
     <div className="flex flex-col items-center w-full h-screen bg-gray-100 relative overflow-hidden">
-      <div className="w-full h-2/3 bg-gray-300 relative">
-        <h1 className="absolute top-16 right-5 text-2xl font-bold text-blue-500 z-50">
-          MOKSH
-        </h1>
-
-        <div className="absolute top-5 right-5 flex items-center z-50">
-          <button
-            onClick={handleLogout}
-            className="flex items-center bg-red-500 text-white px-3 py-2 rounded-md hover:bg-red-600 transition"
-          >
-            <img
-              src="https://www.svgrepo.com/show/529288/user-minus.svg"
-              alt="Logout Icon"
-              className="w-6 h-6 mr-2"
-            />
-            Logout
-          </button>
-        </div>
-
-        <div className="absolute inset-0">
-          <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d27888.810772897955!2d76.5710154!3d28.8955165!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390d83bfbffffffff%3A0xfdf11cda0895e60d!2sRohtak%2C%20Haryana!5e0!3m2!1sen!2sin!4v1699379253679!5m2!1sen!2sin"
-            className="w-full h-full"
-            allowFullScreen=""
-            loading="lazy"
-            title="Map"
-          ></iframe>
-        </div>
+      <div className="absolute top-5 right-5 flex items-center z-50">
+        <button
+          onClick={handleLogout}
+          className="flex items-center bg-red-500 text-white px-3 py-2 rounded-md hover:bg-red-600 transition"
+        >
+          <img
+            src="https://www.svgrepo.com/show/529288/user-minus.svg"
+            alt="Logout Icon"
+            className="w-6 h-6 mr-2"
+          />
+          Logout
+        </button>
       </div>
+
+      <div ref={mapRef} className="w-full h-2/3 bg-gray-300 relative"></div>
 
       <div
         ref={formRef}
@@ -139,7 +196,7 @@ const Home = () => {
         <h5
           ref={panelCloseRef}
           onClick={() => setPanelOpen(false)}
-          className="absolute top-5 right-5 text-2xl font-bold"
+          className="mt-4 absolute top-5 right-5 text-2xl font-bold"
         >
           <i className="ri-arrow-down-wide-fill"></i>
         </h5>
@@ -190,7 +247,7 @@ const Home = () => {
             onClick={handleButtonClick}
             className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800 transition"
           >
-            Choose pick-up time
+            Choose Vehicle
           </button>
         </div>
       </div>
@@ -201,7 +258,6 @@ const Home = () => {
         style={{ height: "0%", overflow: "hidden" }}
       >
         <LocationSearchPanel onLocationSelect={handleLocationSelect} />
-        <p className="text-white text-center mt-4"></p>
       </div>
     </div>
   );

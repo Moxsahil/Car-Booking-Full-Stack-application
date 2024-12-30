@@ -1,100 +1,164 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const VehicleScreen = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { pickup, destination } = location.state || {};
+  const mapRef = useRef(null);
+  const directionsService = useRef(null);
+  const directionsRenderer = useRef(null);
 
   const handleLogout = async () => {
     navigate("/user/logout");
   };
 
-  const [selectedRide, setSelectedRide] = useState(null); 
+  const [selectedRide, setSelectedRide] = useState(null);
+  const [distance, setDistance] = useState('');
+  const [duration, setDuration] = useState('');
+  const [etas, setEtas] = useState([]);
+  const [ridePrices, setRidePrices] = useState([])
 
   const rides = [
     {
       name: "CityFast",
       capacity: 4,
       time: "2 mins away",
-      eta: "15:24",
       description: "Affordable, compact rides",
-      price: "₹193.20",
+      basePrice: 300,
       image: "https://www.svgrepo.com/show/408293/car-black.svg",
     },
     {
       name: "Moto",
       capacity: 1,
       time: "3 mins away",
-      eta: "15:25",
       description: "Affordable motorcycle rides",
-      price: "₹65.17",
+      basePrice: 100,
       image: "https://www.svgrepo.com/show/101451/racing-motorbike.svg",
     },
     {
       name: "Premier",
       capacity: 4,
       time: "4 mins away",
-      eta: "15:25",
       description: "Comfortable buses, for long journeys",
-      price: "₹193.20",
+      basePrice: 40,
       image: "https://www.svgrepo.com/show/278837/bus.svg",
     },
     {
       name: "Auto",
       capacity: 3,
       time: "2 mins away",
-      eta: "15:24",
       description: "Affordable auto rides",
-      price: "₹118.21",
+      basePrice: 0,
       image: "https://www.svgrepo.com/show/22504/auto-ricksaw.svg",
     },
   ];
 
   const handleRideClick = (ride) => {
-    setSelectedRide(ride.name); // Update selected ride
-    navigate('/paymentpage', { state: { ride } }); // Pass ride data to the PaymentPage
+    setSelectedRide(ride.name);
+    navigate('/paymentpage', { state: { ride, pickup, destination, ridePrices } });
   };
+
+  const calculatePrice = (distanceInKm, basePrice) => {
+    let pricePerKm;
+    if(distance <= 100){
+      pricePerKm = 5;
+    } else if(distance <= 200){
+      pricePerKm = 10;
+    } else {
+      pricePerKm = 15;
+    }
+     return distanceInKm * pricePerKm + basePrice;
+  }
+
+  useEffect(() => {
+    if (window.google && pickup && destination) {
+      if (!directionsService.current) {
+        directionsService.current = new window.google.maps.DirectionsService();
+      }
+      if (!directionsRenderer.current) {
+        directionsRenderer.current = new window.google.maps.DirectionsRenderer();
+      }
+
+      const map = new window.google.maps.Map(mapRef.current, {
+        zoom: 14,
+        center: { lat: 28.8955165, lng: 76.5710154 },
+      });
+
+      directionsRenderer.current.setMap(map);
+
+      const request = {
+        origin: pickup,
+        destination: destination,
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      };
+
+      directionsService.current.route(request, (result, status) => {
+        if (status === window.google.maps.DirectionsStatus.OK) {
+          directionsRenderer.current.setDirections(result);
+          const route = result.routes[0].legs[0];
+          setDistance(route.distance.text);
+          setDuration(route.duration.text);
+
+          const distanceInKm = parseFloat(route.distance.text.replace(' km', ''));
+
+          
+          const newEtas = rides.map(() => {
+            const randomMinutes = Math.floor(Math.random() * 6) + 10;
+            const etaDate = new Date(Date.now() + randomMinutes * 60000);
+            const etaHours = etaDate.getHours().toString().padStart(2, '0');
+            const etaMinutes = etaDate.getMinutes().toString().padStart(2, '0');
+            return `${etaHours}:${etaMinutes}`;
+          });
+          setEtas(newEtas);
+
+          const newRidePrices = rides.map( ride => {
+            return calculatePrice(distanceInKm, ride.basePrice).toFixed(2);
+          });
+          setRidePrices(newRidePrices);
+        } else {
+          console.error(`error fetching directions ${result}`);
+        }
+      });
+    }
+  }, [pickup, destination]);
 
   return (
     <div className="h-screen flex flex-col">
-      {/* Map Section */}
       <div className="flex-grow relative">
-      <h1 className="absolute top-16 right-5 text-2xl font-bold text-black z-50">MOKSH</h1>
+        <h1 className="absolute top-16 right-5 text-2xl font-bold text-black z-50">MOKSH</h1>
 
-      <div className="absolute top-5 right-5 flex items-center z-50">
-  <button
-    onClick={handleLogout}
-    className="flex items-center bg-red-500 text-white px-3 py-2 rounded-md hover:bg-red-600 transition"
-  >
-    <img
-      src="https://www.svgrepo.com/show/529288/user-minus.svg" 
-      alt="Logout Icon"
-      className="w-6 h-6 mr-2" 
-    />
-    Logout
-  </button>
-</div>
-        <div className="absolute inset-0 bg-gray-200">
-          <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d27888.810772897955!2d76.5710154!3d28.8955165!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390d83bfbffffffff%3A0xfdf11cda0895e60d!2sRohtak%2C%20Haryana!5e0!3m2!1sen!2sin!4v1699379253679!5m2!1sen!2sin"
-            className="w-full h-full"
-            allowFullScreen=""
-            loading="lazy"
-            title="Map"
-          ></iframe>
+        <div className="absolute top-5 right-5 flex items-center z-50">
+          <button
+            onClick={handleLogout}
+            className="flex items-center bg-red-500 text-white px-3 py-2 rounded-md hover:bg-red-600 transition"
+          >
+            <img
+              src="https://www.svgrepo.com/show/529288/user-minus.svg"
+              alt="Logout Icon"
+              className="w-6 h-6 mr-2"
+            />
+            Logout
+          </button>
         </div>
+        <div ref={mapRef} className="absolute inset-0 bg-gray-200"></div>
       </div>
 
-      {/* Bottom Section */}
       <div className="bg-white px-4 py-6 shadow-lg">
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold">Route Details</h2>
+          <p>Distance: {distance}</p>
+          <p>Duration: {duration}</p>
+        </div>
         <div className="space-y-4">
           {rides.map((ride, index) => (
             <div
               key={index}
-              onClick={() => handleRideClick(ride)} // Add onClick handler
-              className={`flex items-center p-4 border rounded-lg cursor-pointer transition-colors duration-300 ${
+              onClick={() => handleRideClick(ride)}
+              className={`bg-blue-400 flex items-center p-4 border rounded-lg cursor-pointer transition-colors duration-300 hover:bg-red-400 ${
                 selectedRide === ride.name
                   ? 'border-gray-900 bg-gray-100'
-                  : 'border-gray-300 hover:border-blue-700'
+                  : 'border-gray-300 hover:border-gray-700 hover:text-white'
               }`}
             >
               <img
@@ -105,10 +169,10 @@ const VehicleScreen = () => {
               <div className="flex-grow">
                 <div className="flex justify-between items-center">
                   <h3 className="font-semibold">{ride.name}</h3>
-                  <span>{ride.price}</span>
+                  <span>₹{ridePrices[index]}</span>
                 </div>
-                <div className="text-sm text-gray-500">
-                  {ride.time} • {ride.eta}
+                <div className="text-sm text-gray-500 font-bold">
+                  {ride.time} • ETA: {etas[index]}
                 </div>
                 <div className="text-sm">{ride.description}</div>
               </div>
