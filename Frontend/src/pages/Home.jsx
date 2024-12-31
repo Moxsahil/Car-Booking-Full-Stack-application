@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import gsap from "gsap";
 import "remixicon/fonts/remixicon.css";
 import LocationSearchPanel from "../components/LocationSearchPanel";
+import Logout from "../components/Logout";
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -41,33 +42,38 @@ const Home = () => {
       gsap.to(panelRef.current, {
         height: "61%",
         duration: 0.5,
-        ease: "ease.out",
+        ease: "power3.inOut",
       });
       gsap.to(formRef.current, {
         y: "-180%",
-        ease: "ease.out",
+        duration: 0.5,
+        ease: "power3.inOut",
       });
       gsap.to(panelCloseRef.current, {
         opacity: 1,
+        duration: 0.5,
+        ease: "power3.inOut",
       });
-      gsap.to(".label-to-top", { opacity: 1, duration: 0.3 });
     } else {
       gsap.to(panelRef.current, {
         height: "0%",
         duration: 0.5,
-        ease: "power2.out",
+        ease: "power3.inOut",
       });
       gsap.to(formRef.current, {
         y: "0%",
         duration: 0.5,
-        ease: "power2.out",
+        ease: "power3.inOut",
       });
       gsap.to(panelCloseRef.current, {
         opacity: 0,
+        duration: 0.5,
+        ease: "power3.inOut",
       });
-      gsap.to(".label-to-top", { opacity: 0, duration: 0.5 });
     }
   }, [panelOpen]);
+
+  
 
   const handleButtonClick = () => {
     if (pickup && destination) {
@@ -173,19 +179,7 @@ const Home = () => {
 
   return (
     <div className="flex flex-col items-center w-full h-screen bg-gray-100 relative overflow-hidden">
-      <div className="absolute top-5 right-5 flex items-center z-50">
-        <button
-          onClick={handleLogout}
-          className="flex items-center bg-red-500 text-white px-3 py-2 rounded-md hover:bg-red-600 transition"
-        >
-          <img
-            src="https://www.svgrepo.com/show/529288/user-minus.svg"
-            alt="Logout Icon"
-            className="w-6 h-6 mr-2"
-          />
-          Logout
-        </button>
-      </div>
+      <Logout />
 
       <div ref={mapRef} className="w-full h-2/3 bg-gray-300 relative"></div>
 

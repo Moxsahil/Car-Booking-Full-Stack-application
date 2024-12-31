@@ -16,11 +16,13 @@ connectToDb();
 
 app.use(express.json());
 
-app.use(cors({
-  origin: "https://car-booking-by-mox.vercel.app/",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true,
-}));
+const corsOptions = {
+    origin: ['https://car-booking-by-mox.vercel.app'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true,
+  };
+  
+  app.use(cors(corsOptions));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());

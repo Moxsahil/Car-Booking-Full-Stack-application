@@ -55,8 +55,10 @@ const VehicleScreen = () => {
   ];
 
   const handleRideClick = (ride) => {
+    const selectedRideIndex = rides.findIndex((r) => r.name === ride.name);
+    const selectedEta = etas[selectedRideIndex];
     setSelectedRide(ride.name);
-    navigate('/paymentpage', { state: { ride, pickup, destination, ridePrices } });
+    navigate('/paymentpage', { state: { ride, pickup, destination, ridePrices: ridePrices[selectedRideIndex], etas: selectedEta } });
   };
 
   const calculatePrice = (distanceInKm, basePrice) => {
