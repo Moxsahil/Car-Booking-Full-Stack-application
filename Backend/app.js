@@ -17,7 +17,7 @@ connectToDb();
 app.use(express.json());
 
 const corsOptions = {
-    origin: ['https://car-booking-by-mox.vercel.app'],
+    origin: ['http://localhost:5173','https://car-booking-by-mox.vercel.app'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   };

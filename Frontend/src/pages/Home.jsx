@@ -4,6 +4,8 @@ import gsap from "gsap";
 import "remixicon/fonts/remixicon.css";
 import LocationSearchPanel from "../components/LocationSearchPanel";
 import Logout from "../components/Logout";
+import { ToastContainer, toast} from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -79,7 +81,7 @@ const Home = () => {
     if (pickup && destination) {
       navigate("/pickuptime", { state: { pickup, destination } });
     } else {
-      alert("Please fill in both Pickup and Destination fields.");
+      toast("Please fill in both Pickup and Destination fields.");
     }
   };
 
@@ -163,7 +165,6 @@ const Home = () => {
         },
         (error) => {
           console.error("Error getting location:", error);
-          alert("Unable to retrieve your location.");
         }
       );
     } else {
@@ -179,6 +180,8 @@ const Home = () => {
 
   return (
     <div className="flex flex-col items-center w-full h-screen bg-gray-100 relative overflow-hidden">
+
+    <ToastContainer  position="top-right" theme="dark" autoClose={3000} hideProgressBar closeOnClick pauseOnFocusLoss draggable pauseOnHover />
       <Logout />
 
       <div ref={mapRef} className="w-full h-2/3 bg-gray-300 relative"></div>

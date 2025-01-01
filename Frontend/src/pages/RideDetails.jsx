@@ -13,7 +13,7 @@ const RideDetails = () => {
 
   const { ride, pickup, destination, passengername, mobile, etas } =
     location.state || {};
-  console.log(pickup, destination, passengername, mobile, etas);
+ 
 
   if (!ride) {
     navigate("/home", { replace: true });
@@ -83,7 +83,7 @@ const RideDetails = () => {
         <hr className="border-t border-gray-400 my-4" />
         
         <div className=" flex-wrap justify-around">
-          <div className="text-center mr-[60%]">
+          <div className="text-center flex flex-col items-start">
             <h3 className="font-extrabold text-gray-800 text-lg">
               Passenger Details
             </h3>
