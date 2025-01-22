@@ -16,7 +16,11 @@ connectToDb();
 
 app.use(express.json());
 
-app.use(cors());
+app.use(cors({
+    origin: 'https://car-booking-full-stack-application-7tct-16s73n056.vercel.app',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true, // Include this if using cookies or authorization headers
+}));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
