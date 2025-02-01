@@ -54,7 +54,7 @@ cd Car-Booking-Full-Stack-application
 To run this project, you will need to add the following environment variables to your .env file
 
 **Frontend env**  
-`VITE_BASE_URL =`
+`VITE_BASE_URL`
 
 `RAZORPAY_KEY_ID`
 
