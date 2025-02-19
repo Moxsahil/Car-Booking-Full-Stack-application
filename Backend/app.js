@@ -21,9 +21,6 @@ connectToDb();
 // }));
 // app.options("*", cors());
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
 
 app.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*"); // Allow all origins
@@ -36,6 +33,11 @@ app.use((req, res, next) => {
 
     next();
 });
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
 
 
 app.get("/", (req, res) => {
